@@ -28,10 +28,10 @@ resource "azurerm_lb_backend_address_pool" "ethernet0_1" {
 
 resource "azurerm_lb_probe" "ingress_https" {
   name                = "https"
-  resource_group_name = var.resource_group_name
+  #resource_group_name = var.resource_group_name
   loadbalancer_id     = azurerm_lb.ingress.id
   port                = 443
-  protocol            = "https"
+  protocol            = "Https"
   request_path        = "/php/login.php"
   interval_in_seconds = 5
   number_of_probes    = 2
@@ -41,13 +41,13 @@ resource "azurerm_lb_probe" "ingress_https" {
 resource "azurerm_lb_rule" "tcp" {
   count                          = length(var.inbound_tcp_ports)
   name                           = "tcp-${element(var.inbound_tcp_ports, count.index)}"
-  resource_group_name            = var.resource_group_name
+  #resource_group_name            = var.resource_group_name
   loadbalancer_id                = azurerm_lb.ingress.id
-  protocol                       = "TCP"
+  protocol                       = "Tcp"
   frontend_port                  = element(var.inbound_tcp_ports, count.index)
   backend_port                   = element(var.inbound_tcp_ports, count.index)
   frontend_ip_configuration_name = "PublicIPAddress"
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.ethernet0_1.id
+  backend_address_pool_ids        = [azurerm_lb_backend_address_pool.ethernet0_1.id]
   probe_id                       = azurerm_lb_probe.ingress_https.id
   enable_floating_ip             = true
   depends_on                     = [azurerm_lb.ingress, azurerm_lb_backend_address_pool.ethernet0_1]
@@ -56,14 +56,14 @@ resource "azurerm_lb_rule" "tcp" {
 
 resource "azurerm_lb_rule" "udp" {
   count                          = length(var.inbound_udp_ports)
+  #resource_group_name            = var.resource_group_name
   name                           = "udp-${element(var.inbound_udp_ports, count.index)}"
-  resource_group_name            = var.resource_group_name
   loadbalancer_id                = azurerm_lb.ingress.id
-  protocol                       = "UDP"
+  protocol                       = "Udp"
   frontend_port                  = element(var.inbound_udp_ports, count.index)
   backend_port                   = element(var.inbound_udp_ports, count.index)
   frontend_ip_configuration_name = "PublicIPAddress"
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.ethernet0_1.id
+  backend_address_pool_ids        = [azurerm_lb_backend_address_pool.ethernet0_1.id]
   probe_id                       = azurerm_lb_probe.ingress_https.id
   enable_floating_ip             = true
   depends_on                     = [azurerm_lb.ingress, azurerm_lb_backend_address_pool.ethernet0_1]
@@ -94,10 +94,9 @@ resource "azurerm_lb" "egress" {
 
 resource "azurerm_lb_probe" "egress_https" {
   name                = "https"
-  resource_group_name = var.resource_group_name
   loadbalancer_id     = azurerm_lb.egress.id
   port                = 443
-  protocol            = "https"
+  protocol            = "Https"
   request_path        = "/php/login.php"
   interval_in_seconds = 5
   number_of_probes    = 2
@@ -113,13 +112,12 @@ resource "azurerm_lb_backend_address_pool" "ethernet0_2" {
 
 resource "azurerm_lb_rule" "allports" {
   name                           = "all-ports"
-  resource_group_name            = var.resource_group_name
   loadbalancer_id                = azurerm_lb.egress.id
   protocol                       = "All"
   frontend_port                  = 0
   backend_port                   = 0
   frontend_ip_configuration_name = "LoadBalancerIP"
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.ethernet0_2.id
+  backend_address_pool_ids        = [azurerm_lb_backend_address_pool.ethernet0_2.id]
   probe_id                       = azurerm_lb_probe.egress_https.id
   enable_floating_ip             = true
   depends_on                     = [azurerm_network_interface.ethernet0_2]

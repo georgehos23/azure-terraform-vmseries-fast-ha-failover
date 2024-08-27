@@ -3,11 +3,12 @@ resource "random_string" "storage_account_name" {
   lower   = true
   upper   = false
   special = false
-  number  = false
+  numeric = false
+  #number  = false
 }
 
 resource "azurerm_storage_account" "bootstrap" {
-  name                      = "bootstrap${random_string.storage_account_name.result}"
+  name                      = "bootstrapstorage2"
   account_tier              = "Standard"
   account_replication_type  = "LRS"
   location                  = var.resource_location
@@ -25,15 +26,17 @@ resource "azurerm_storage_share" "bootstrap" {
 resource "azurerm_storage_share_directory" "vmseries" {
   for_each             = var.vmseries
   name                 = each.key
-  share_name           = azurerm_storage_share.bootstrap.name
-  storage_account_name = azurerm_storage_account.bootstrap.name
+  storage_share_id     = azurerm_storage_share.bootstrap.id
+  # share_name           = azurerm_storage_share.bootstrap.name
+  # storage_account_name = azurerm_storage_account.bootstrap.name
 }
 
 resource "azurerm_storage_share_directory" "plugins" {
   for_each             = var.vmseries
   name                 = "${each.key}/plugins"
-  share_name           = azurerm_storage_share.bootstrap.name
-  storage_account_name = azurerm_storage_account.bootstrap.name
+  storage_share_id     = azurerm_storage_share.bootstrap.id
+  # share_name           = azurerm_storage_share.bootstrap.name
+  # storage_account_name = azurerm_storage_account.bootstrap.name
 
   provisioner "local-exec" {
     command = "az storage file upload-batch --account-name ${azurerm_storage_account.bootstrap.name} --account-key ${azurerm_storage_account.bootstrap.primary_access_key} --destination ${azurerm_storage_share.bootstrap.name}/${each.key}/plugins  --source bootstrap_files/plugins"
@@ -41,7 +44,7 @@ resource "azurerm_storage_share_directory" "plugins" {
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "az storage file delete-batch --account-name ${self.storage_account_name}  --source bootstrap/${each.key}/plugins"
+    command    = "az storage file delete-batch --account-name ${self.storage_share_id}  --source bootstrap/${each.key}/plugins"
     on_failure = continue
   }
 
@@ -54,8 +57,9 @@ resource "azurerm_storage_share_directory" "plugins" {
 resource "azurerm_storage_share_directory" "software" {
   for_each             = var.vmseries
   name                 = "${each.key}/software"
-  share_name           = azurerm_storage_share.bootstrap.name
-  storage_account_name = azurerm_storage_account.bootstrap.name
+  #share_name           = azurerm_storage_share.bootstrap.name
+  storage_share_id     = azurerm_storage_share.bootstrap.id
+  #storage_account_name = azurerm_storage_account.bootstrap.name
 
   provisioner "local-exec" {
     command = "az storage file upload-batch --account-name ${azurerm_storage_account.bootstrap.name} --account-key ${azurerm_storage_account.bootstrap.primary_access_key} --destination ${azurerm_storage_share.bootstrap.name}/${each.key}/software  --source bootstrap_files/software"
@@ -63,7 +67,7 @@ resource "azurerm_storage_share_directory" "software" {
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "az storage file delete-batch --account-name ${self.storage_account_name} --source bootstrap/${each.key}/software"
+    command    = "az storage file delete-batch --account-name bootstrapstorage2 --source bootstrap/${each.key}/software"
     on_failure = continue
   }
   depends_on = [
@@ -75,12 +79,13 @@ resource "azurerm_storage_share_directory" "software" {
 resource "azurerm_storage_share_directory" "license" {
   for_each             = var.vmseries
   name                 = "${each.key}/license"
-  share_name           = azurerm_storage_share.bootstrap.name
-  storage_account_name = azurerm_storage_account.bootstrap.name
+  storage_share_id     = azurerm_storage_share.bootstrap.id
+  # share_name           = azurerm_storage_share.bootstrap.name
+  # storage_account_name = azurerm_storage_account.bootstrap.name
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "az storage file delete-batch --account-name ${self.storage_account_name} --source bootstrap/${each.key}/license"
+    command    = "az storage file delete-batch --account-name bootstrapstorage2 --source bootstrap/${each.key}/license"
     on_failure = continue
   }
   depends_on = [
@@ -93,8 +98,9 @@ resource "azurerm_storage_share_directory" "license" {
 resource "azurerm_storage_share_directory" "content" {
   for_each             = var.vmseries
   name                 = "${each.key}/content"
-  share_name           = azurerm_storage_share.bootstrap.name
-  storage_account_name = azurerm_storage_account.bootstrap.name
+  storage_share_id     = azurerm_storage_share.bootstrap.id
+  # share_name           = azurerm_storage_share.bootstrap.name
+  # storage_account_name = azurerm_storage_account.bootstrap.name
 
   provisioner "local-exec" {
     command = "az storage file upload-batch --account-name ${azurerm_storage_account.bootstrap.name} --account-key ${azurerm_storage_account.bootstrap.primary_access_key} --destination ${azurerm_storage_share.bootstrap.name}/${each.key}/content  --source bootstrap_files/content"
@@ -106,7 +112,7 @@ resource "azurerm_storage_share_directory" "content" {
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "az storage file delete-batch --account-name ${self.storage_account_name} --source bootstrap/${each.key}/content"
+    command    = "az storage file delete-batch --account-name bootstrapstorage2 --source bootstrap/${each.key}/content"
     on_failure = continue
   }
   depends_on = [
@@ -118,8 +124,9 @@ resource "azurerm_storage_share_directory" "content" {
 resource "azurerm_storage_share_directory" "config" {
   for_each             = var.vmseries
   name                 = "${each.key}/config"
-  share_name           = azurerm_storage_share.bootstrap.name
-  storage_account_name = azurerm_storage_account.bootstrap.name
+  storage_share_id     = azurerm_storage_share.bootstrap.id
+  # share_name           = azurerm_storage_share.bootstrap.name
+  # storage_account_name = azurerm_storage_account.bootstrap.name
 
   provisioner "local-exec" {
     command = "az storage file upload-batch --account-name ${azurerm_storage_account.bootstrap.name} --account-key ${azurerm_storage_account.bootstrap.primary_access_key} --destination ${azurerm_storage_share.bootstrap.name}/${each.key}/config  --source tmp/${each.key}/config"
@@ -127,7 +134,7 @@ resource "azurerm_storage_share_directory" "config" {
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "az storage file delete-batch --account-name ${self.storage_account_name} --source bootstrap/${each.key}/config"
+    command    = "az storage file delete-batch --account-name bootstrapstorage2 --source bootstrap/${each.key}/config"
     on_failure = continue
   }
 
@@ -192,22 +199,22 @@ resource "local_file" "initcfg_txt" {
 data "template_file" "bootstrap_cfg_vmseries0" {
   template = file("bootstrap_files/config/vmseries.xml.template")
   vars = {
-    private_next_hop = cidrhost(azurerm_subnet.this["private"].address_prefix, 1)
-    public_next_hop = cidrhost(azurerm_subnet.this["public"].address_prefix, 1)
+    private_next_hop = cidrhost(azurerm_subnet.this["private"].address_prefixes[0], 1)
+    public_next_hop = cidrhost(azurerm_subnet.this["public"].address_prefixes[0], 1)
     peer_management_ip = azurerm_network_interface.management["vmseries1"].private_ip_address
     ha2_ip = azurerm_network_interface.ethernet0_3["vmseries0"].private_ip_address
-    ha2_subnet = cidrnetmask(azurerm_subnet.this["ha2"].address_prefix)
+    ha2_subnet = cidrnetmask(azurerm_subnet.this["ha2"].address_prefixes[0])
   }
 }
 
 data "template_file" "bootstrap_cfg_vmseries1" {
   template = file("bootstrap_files/config/vmseries.xml.template")
   vars = {
-    private_next_hop = cidrhost(azurerm_subnet.this["private"].address_prefix, 1)
-    public_next_hop = cidrhost(azurerm_subnet.this["public"].address_prefix, 1)
+    private_next_hop = cidrhost(azurerm_subnet.this["private"].address_prefixes[0], 1)
+    public_next_hop = cidrhost(azurerm_subnet.this["public"].address_prefixes[0], 1)
     peer_management_ip = azurerm_network_interface.management["vmseries0"].private_ip_address
     ha2_ip = azurerm_network_interface.ethernet0_3["vmseries1"].private_ip_address
-    ha2_subnet = cidrnetmask(azurerm_subnet.this["ha2"].address_prefix)
+    ha2_subnet = cidrnetmask(azurerm_subnet.this["ha2"].address_prefixes[0])
   }
 }
 

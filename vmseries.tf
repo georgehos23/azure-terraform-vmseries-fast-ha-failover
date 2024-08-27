@@ -18,7 +18,7 @@ resource "azurerm_network_interface" "management" {
   name                 = "${each.key}-nic-management"
   location             = var.resource_location
   resource_group_name  = var.resource_group_name
-  enable_ip_forwarding = false
+  ip_forwarding_enabled = false
 
   ip_configuration {
     name                          = "ipconfig1"
@@ -79,9 +79,9 @@ resource "azurerm_network_interface" "ethernet0_1" {
   name                 = "${each.key}-nic-ethernet01"
   location             = var.resource_location
   resource_group_name  = var.resource_group_name
-  enable_ip_forwarding = true
-  enable_accelerated_networking = true
-
+  ip_forwarding_enabled = false
+  accelerated_networking_enabled = true
+  
   ip_configuration {
     name                          = "ipconfig1"
     subnet_id                     = azurerm_subnet.this["public"].id
@@ -142,8 +142,8 @@ resource "azurerm_network_interface" "ethernet0_2" {
   name                 = "${each.key}-nic-ethernet02"
   location             = var.resource_location
   resource_group_name  = var.resource_group_name
-  enable_ip_forwarding = true
-  enable_accelerated_networking = true
+  ip_forwarding_enabled = false
+  accelerated_networking_enabled = true
 
 
   ip_configuration {
@@ -172,8 +172,9 @@ resource "azurerm_network_interface" "ethernet0_3" {
   name                 = "${each.key}-nic-ethernet03"
   location             = var.resource_location
   resource_group_name  = var.resource_group_name
-  enable_ip_forwarding = true
-  enable_accelerated_networking = true
+  ip_forwarding_enabled = false
+  accelerated_networking_enabled = true
+  
 
   ip_configuration {
     name                          = "ipconfig1"
